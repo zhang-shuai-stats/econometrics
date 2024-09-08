@@ -24,3 +24,15 @@ keep roe salary
 reg salary roe
 predict salaryhat, xb
 gen uhat = salary - salaryhat
+
+*————————————————————————————————————————————————————————————————————————————————————
+* chapter 3
+*————————————————————————————————————————————————————————————————————————————————————
+* 3.1
+use GPA1, clear
+reg colGPA hsGPA ACT
+
+* 3.2
+use WAGE1, clear
+gen log_wage = log(wage)
+reg log_wage educ exper tenure
