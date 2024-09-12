@@ -25,6 +25,21 @@ reg salary roe
 predict salaryhat, xb
 gen uhat = salary - salaryhat
 
+* 2.10
+use WAGE1, clear
+gen log_wage = log(wage)
+reg log_wage educ
+
+* 2.11
+use CEOSAL1, clear
+gen log_salary = log(salary)
+gen log_sales = log(sales)
+reg log_salary log_sales
+
+2.12
+use MEAP93, clear
+reg math10 lnchprg
+
 *————————————————————————————————————————————————————————————————————————————————————
 * chapter 3
 *————————————————————————————————————————————————————————————————————————————————————
