@@ -36,3 +36,37 @@ reg colGPA hsGPA ACT
 use WAGE1, clear
 gen log_wage = log(wage)
 reg log_wage educ exper tenure
+
+* 3.3 
+use 401K, clear
+reg prate mrate age
+local beta1 = _b[mrate]
+local beta2 = _b[age]
+di "`beta1' `beta2'"
+
+* 如果省略age
+reg prate mrate
+local beta1_tilde = _b[mrate]
+di "`beta1_tilde'"
+
+reg age mrate
+local delta = _b[mrate]
+di "`delta'"
+
+local right = `beta1' + `beta2'*`delta'
+di "`beta1_tilde' `right'"
+
+* 3.4 
+use GPA1, clear
+reg colGPA hsGPA ACT
+
+* 3.5 
+use CRIME1, clear
+table narr86, stat(frequency) stat(percent)
+reg narr86 pcnv ptime86 qemp86
+reg narr86 pcnv avgsen ptime86 qemp86
+
+* 3.6
+use WAGE1, clear
+gen log_wage = log(wage)
+reg log_wage educ
