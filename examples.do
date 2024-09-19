@@ -55,6 +55,7 @@ reg log_wage educ exper tenure
 * 3.3 
 use 401K, clear
 reg prate mrate age
+ereturn list 
 local beta1 = _b[mrate]
 local beta2 = _b[age]
 di "`beta1' `beta2'"
@@ -85,3 +86,35 @@ reg narr86 pcnv avgsen ptime86 qemp86
 use WAGE1, clear
 gen log_wage = log(wage)
 reg log_wage educ
+
+*————————————————————————————————————————————————————————————————————————————————————
+* chapter 6
+*————————————————————————————————————————————————————————————————————————————————————
+* 表 6-1
+use BWGHT, clear 
+
+* 使用collect命令收集回归结果，并输出最终表格
+collect clear 
+collect: reg bwght cigs faminc
+collect: reg bwghtlbs cigs faminc
+collect: reg bwght packs faminc 
+
+collect dims
+collect levelsof colname
+collect levelsof result
+collect layout (colname[cigs packs faminc _cons]#result[_r_b _r_se] result[N rss rmse]) (cmdset)
+
+* 行名称
+collect style header colname, level(value)
+collect style header colname[_cons], level(label)
+collect style header result[_r_b _r_se], level(hide)
+collect label levels result N "观测次数" r2 "R2" rss "SSR" rmse "SER", modify
+
+* 列名称
+collect label levels cmdset 1 "(1) bwght" 2 "(2) bwghtlbs" 3 "(3) bwght", modify
+
+* 其他格式
+collect style cell result[_r_b]#result[_r_se], warn nformat(%9.4f)
+collect style cell result[_r_se], warn sformat("(%s)")
+
+collect layout (colname[cigs packs faminc _cons]#result[_r_b _r_se] result[N r2 rss rmse]) (cmdset)
