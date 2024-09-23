@@ -141,3 +141,14 @@ local lsalary_hat = _b[_cons] + _b[lsales] * log(5000) + _b[lmktval] * log(10000
 di "`lsalary_hat'"
 local salary_hat = `alpha0' * exp(`lsalary_hat')
 di "`salary_hat'"
+
+*————————————————————————————————————————————————————————————————————————————————————
+* chapter 7
+*————————————————————————————————————————————————————————————————————————————————————
+* 例 7.1
+use WAGE1, clear 
+reg wage female educ exper tenure
+reg wage female
+reg educ female // 验证协变量之间的关系
+reg exper female 
+reg tenure female
