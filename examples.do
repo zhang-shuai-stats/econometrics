@@ -118,3 +118,26 @@ collect style cell result[_r_b]#result[_r_se], warn nformat(%9.4f)
 collect style cell result[_r_se], warn sformat("(%s)")
 
 collect layout (colname[cigs packs faminc _cons]#result[_r_b _r_se] result[N r2 rss rmse]) (cmdset)
+
+* 例 6.5
+use GPA2, clear 
+reg colgpa sat hsperc hsize hsizesq
+
+gen sat0 = sat - 1200
+gen hsperc0 = hsperc - 30
+gen hsize0 = hsize - 5
+gen hsizesq0 = hsizesq - 25
+reg colgpa sat0 hsperc0 hsize0 hsizesq0
+
+* 例 6.7
+use CEOSAL2, clear 
+reg lsalary lsales lmktval ceoten
+predict uhat, residual  // 残差
+gen exp_uhat = exp(uhat)
+sum exp_uhat
+local alpha0 = r(mean)  // exp(uhat)的均值
+di "`alpha0'"
+local lsalary_hat = _b[_cons] + _b[lsales] * log(5000) + _b[lmktval] * log(10000) + _b[ceoten]*10 
+di "`lsalary_hat'"
+local salary_hat = `alpha0' * exp(`lsalary_hat')
+di "`salary_hat'"
