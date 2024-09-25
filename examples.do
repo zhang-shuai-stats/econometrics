@@ -152,3 +152,63 @@ reg wage female
 reg educ female // 验证协变量之间的关系
 reg exper female 
 reg tenure female
+
+* 例 7.6
+use WAGE1, clear 
+gen marrmale = married * (1 - female)
+gen marrfem = married * female
+gen singfem = (1 - married)* female
+reg lwage marrmale marrfem singfem educ exper expersq tenure tenursq
+* 一种更快捷的方式
+reg lwage i.female#i.married educ exper expersq tenure tenursq
+
+* p200 （7.33）
+use JTRAIN, clear 
+reg lscrap grant lsales lemploy if year == 1988
+
+* p201 （7.35）
+use FERTIL2, clear 
+reg children age educ 
+
+*————————————————————————————————————————————————————————————————————————————————————
+* chapter 8
+*————————————————————————————————————————————————————————————————————————————————————
+* 例 8.1
+use WAGE1, clear 
+gen marrmale = married * (1 - female)
+gen marrfem = married * female
+gen singfem = (1 - married)* female
+* 普通回归
+reg lwage marrmale marrfem singfem educ exper expersq tenure tenursq
+* 异方差-文件标准误
+reg lwage marrmale marrfem singfem educ exper expersq tenure tenursq, robust 
+
+
+* 例 8.6
+use 401KSUBS, clear 
+keep if fsize == 1 
+gen age25 = (age - 25)^2
+
+collect clear 
+collect: reg nettfa inc  // ols
+collect: reg nettfa inc [aweight=1/inc]
+collect: reg nettfa inc age25 male e401k
+collect: reg nettfa inc age25 male e401k [aweight=1/inc]
+
+collect dims
+collect layout (colname#result[_r_b _r_se] result[N r2]) (cmdset)
+
+* 行名称
+collect style header colname, level(value)
+collect style header colname[_cons], level(label)
+collect style header result[_r_b _r_se], level(hide)
+collect label levels result N "观测次数" r2 "R2", modify
+
+* 列名称
+collect label levels cmdset 1 "(1) OLS" 2 "(2) WLS" 3 "(3) OLS" 4 "(4) WLS", modify
+
+* 其他格式
+collect style cell result[_r_b _r_se r2], warn nformat(%9.3f)
+collect style cell result[_r_se], warn sformat("(%s)")
+collect layout (colname#result[_r_b _r_se] result[N r2]) (cmdset)
+
