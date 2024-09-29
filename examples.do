@@ -173,7 +173,9 @@ reg children age educ
 *————————————————————————————————————————————————————————————————————————————————————
 * chapter 8
 *————————————————————————————————————————————————————————————————————————————————————
+*********
 * 例 8.1
+*********
 use WAGE1, clear 
 gen marrmale = married * (1 - female)
 gen marrfem = married * female
@@ -183,8 +185,9 @@ reg lwage marrmale marrfem singfem educ exper expersq tenure tenursq
 * 异方差-文件标准误
 reg lwage marrmale marrfem singfem educ exper expersq tenure tenursq, robust 
 
-
+********
 * 例 8.6
+********
 use 401KSUBS, clear 
 keep if fsize == 1 
 gen age25 = (age - 25)^2
@@ -211,4 +214,109 @@ collect label levels cmdset 1 "(1) OLS" 2 "(2) WLS" 3 "(3) OLS" 4 "(4) WLS", mod
 collect style cell result[_r_b _r_se r2], warn nformat(%9.3f)
 collect style cell result[_r_se], warn sformat("(%s)")
 collect layout (colname#result[_r_b _r_se] result[N r2]) (cmdset)
+
+*********
+* 例 8.7 
+*********
+use SMOKE, clear 
+reg cigs lincome lcigpric educ age agesq restaurn
+estat hettest
+estat hettest, rhs
+estat hettest, rhs iid
+
+* 书上bp检验的详细步骤： estat hettest, rhs iid
+* （1）得到残差
+reg cigs lincome lcigpric educ age agesq restaurn
+predict uhat, residual
+gen uhat2 = uhat^2
+* (2) 辅助回归得到r2
+reg uhat2 lincome lcigpric educ age agesq restaurn
+scalar r2 = e(r2)
+* (3) 构建lm统计量
+scalar lm = e(N) * r2
+scalar p = chi2tail(6,lm)
+scalar list lm p
+
+* stata上bpg检验的详细步骤: estat hettest
+* （1）得到一个新统计量
+reg cigs lincome lcigpric educ age agesq restaurn
+scalar sig2 = e(rss)/e(N)
+gen phat = uhat2/sig2
+predict yhat, xb
+* (2) 辅助回归得到ess
+reg phat yhat
+scalar ess = e(mss)
+* (3) 构建lm统计量
+scalar lm =  ess / 2
+scalar p = chi2tail(1,lm)
+scalar list lm p
+
+* stata上bpg检验的详细步骤: estat hettest, rhs
+* （1）得到一个新统计量phat，与上述步骤一致
+* (2) 辅助回归得到ess
+reg phat lincome lcigpric educ age agesq restaurn
+scalar ess = e(mss)
+* (3) 构建lm统计量
+scalar lm =  ess / 2
+scalar p = chi2tail(1,lm)
+scalar list lm p
+
+* 加权回归
+gen log_uhat2 = log(uhat2)
+reg log_uhat2 lincome lcigpric educ age agesq restaurn
+predict gi, xb
+gen hi = exp(gi)
+reg cigs lincome lcigpric educ age agesq restaurn [aweight=1/hi]
+
+********
+* 表8-2
+********
+use 401KSUBS, clear 
+keep if fsize == 1 
+gen age25 = (age - 25)^2
+
+collect clear 
+collect: reg nettfa inc age25 male e401k [aweight=1/inc]
+collect: reg nettfa inc age25 male e401k [aweight=1/inc], robust
+
+collect dims
+collect layout (colname#result[_r_b _r_se] result[N r2]) (cmdset)
+
+* 行名称
+collect style header colname, level(value)
+collect style header colname[_cons], level(label)
+collect style header result[_r_b _r_se], level(hide)
+collect label levels result N "观测次数" r2 "R2", modify
+
+* 列名称
+collect label levels cmdset 1 "(1) 使用非稳健标准误" 2 "(2) 使用稳健标准误", modify
+
+* 其他格式
+collect style cell result[_r_b _r_se r2], warn nformat(%9.3f)
+collect style cell result[_r_se], warn sformat("(%s)")
+collect title "表8-2 nettfa方程的wls估计"
+
+collect layout (colname#result[_r_b _r_se] result[N r2]) (cmdset)
+
+********
+* 例 8.9
+********
+use GPA1, clear
+egen parcoll = anymatch(fathcoll mothcoll), values(1)
+* OLS 
+reg PC hsGPA ACT parcoll
+estimates store OLS
+reg PC hsGPA ACT parcoll, robust
+estimates store OLS_Robust
+predict yhat, xb
+
+* WLS
+gen hi = yhat*(1-yhat)
+reg PC hsGPA ACT parcoll [aweight=1/hi]
+estimates store WLS
+
+etable, estimates(OLS OLS_Robust WLS) mstat(N) mstat(r2) column(estimates) novarlabel
+
+
+
 
