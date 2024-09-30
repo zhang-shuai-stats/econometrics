@@ -317,6 +317,58 @@ estimates store WLS
 
 etable, estimates(OLS OLS_Robust WLS) mstat(N) mstat(r2) column(estimates) novarlabel
 
+*————————————————————————————————————————————————————————————————————————————————————
+* chapter 9
+*————————————————————————————————————————————————————————————————————————————————————
+*********
+* 例 9.1
+*********
+use CRIME1, clear
+reg narr86 pcnv avgsen tottime ptime86 qemp86 inc86 black hispan
+estimates store no_squared
+reg narr86 pcnv pcnvsq avgsen tottime ptime86 pt86sq qemp86 inc86 inc86sq black hispan
+estimates store squared 
+test pcnvsq pt86sq inc86sq  // f检验
 
+etable, estimates(no_squared squared) mstat(N) mstat(r2,nformat(%9.4f))  novarlabel
+
+*********
+* 例 9.2
+*********
+use HPRICE1, clear
+
+* 第一个方程
+reg price lotsize sqrft bdrms
+predict yhat, xb 
+gen yhat2 = yhat^2 
+gen yhat3 = yhat^3 
+reg price lotsize sqrft bdrms yhat2 yhat3 
+test yhat2 yhat3   
+
+* 第二个方程对数方程
+reg lprice llotsize lsqrft bdrms
+predict lyhat, xb
+gen lyhat2 = lyhat^2
+gen lyhat3 = lyhat^3
+reg lprice llotsize lsqrft bdrms lyhat2 lyhat3 
+test lyhat2 lyhat3
+
+* 还可以使用ovtest命令直接得出结果，但是需要添加四次项
+reg price lotsize sqrft bdrms
+estat ovtest
+
+* ovtest的原理
+gen yhat4 = yhat^4  //四次项
+reg price lotsize sqrft bdrms yhat2 yhat3 yhat4
+test yhat2 yhat3 yhat4  // 存在问题
+
+* 自己计算
+qui: reg price lotsize sqrft bdrms
+local r_r = e(r2)
+qui: reg price lotsize sqrft bdrms yhat2 yhat3 yhat4
+local r_ur = e(r2)
+local df = e(df_r)
+local f = (`r_ur'-`r_r')/3/(1-`r_ur')*`df'
+di "`f'"  // 与estat ovtest结果一致
 
 
