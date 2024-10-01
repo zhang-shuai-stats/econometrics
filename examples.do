@@ -371,4 +371,20 @@ local df = e(df_r)
 local f = (`r_ur'-`r_r')/3/(1-`r_ur')*`df'
 di "`f'"  // 与estat ovtest结果一致
 
+*********
+* 例 9.3
+*********
+use WAGE2, clear
+reg lwage educ exper tenure married south urban black
+estimates store c1 
+reg lwage educ exper tenure married south urban black IQ 
+estimates store c2 
+reg lwage educ exper tenure married south urban black IQ c.edu#c.IQ
+estimates store c3 
+
+etable, estimates(c1 c2 c3) mstat(N) mstat(r2,nformat(%9.3f)) novarlabel ///
+stars(0.10 "*" .05 "**" .01 "***", attach(_r_b))  showstars showstarsnote column(index)
+
+
+
 
