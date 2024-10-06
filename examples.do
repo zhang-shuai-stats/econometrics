@@ -170,6 +170,14 @@ reg lscrap grant lsales lemploy if year == 1988
 use FERTIL2, clear 
 reg children age educ 
 
+***************
+* logit模型的例子
+***************
+sysuse auto, clear
+keep foreign weight mpg
+logit foreign weight mpg
+margins, dydx(weight mpg)
+
 *————————————————————————————————————————————————————————————————————————————————————
 * chapter 8
 *————————————————————————————————————————————————————————————————————————————————————
@@ -385,6 +393,53 @@ estimates store c3
 etable, estimates(c1 c2 c3) mstat(N) mstat(r2,nformat(%9.3f)) novarlabel ///
 stars(0.10 "*" .05 "**" .01 "***", attach(_r_b))  showstars showstarsnote column(index)
 
+*********
+* 例 9.4
+*********
+use CRIME2, clear
+reg lcrmrte unem llawexpc lcrmrt_1
+estimates store c2 
+reg lcrmrte unem llawexpc if e(sample)
+estimates store c1
+
+etable, estimates(c1 c2 ) mstat(N) mstat(r2,nformat(%9.3f)) novarlabel ///
+stars(0.10 "*" .05 "**" .01 "***", attach(_r_b))  showstars showstarsnote column(index)
+
+*********
+* 例 9.8
+*********
+use RDCHEM, clear
+reg rdintens sales profmarg 
+estimates store c1 
+sum sales
+reg rdintens sales profmarg if sales < 20000
+estimates store c2
+etable, estimates(c1 c2 ) cstat(_r_b, nformat(%9.6f)) cstat(_r_se, nformat(%9.6f)) mstat(N) mstat(r2,nformat(%9.3f)) novarlabel ///
+stars(0.10 "*" .05 "**" .01 "***", attach(_r_b))  showstars showstarsnote column(index)
+
+scatter rdintens sales
+
+* 学生化残差：销售额最大的观测值
+egen sales_max = max(sales)
+gen id = sales == sales_max
+reg rdintens sales profmarg id
+gen st_sales = _b[id]/_se[id]
+
+* 学生化残差:stata命令
+reg rdintens sales profmarg 
+predict st, rstudent
+
+*********
+* 例 9.10
+*********
+use INFMRT, clear
+keep if year == 1990
+reg infmort lpcinc lphysic lpopul  
+estimates store c1 
+reg infmort lpcinc lphysic lpopul  if DC == 0
+estimates store c2
+etable, estimates(c1 c2 )  mstat(N) mstat(r2,nformat(%9.3f)) novarlabel ///
+stars(0.10 "*" .05 "**" .01 "***", attach(_r_b))  showstars showstarsnote column(index)
 
 
 
