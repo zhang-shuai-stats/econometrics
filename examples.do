@@ -102,7 +102,50 @@ reg math10 totcomp staff enroll
 use GPA1, clear 
 reg colGPA hsGPA ACT skipped
 
+***************
+* 4.4小节的例子
+***************
+use TWOYEAR, clear
 
+* (4.21)
+reg lwage jc univ exper 
+
+* (4.27)
+reg lwage jc totcoll exper 
+
+* 使用test直接检验系数的线性组合
+reg lwage jc univ exper 
+test jc-univ=0
+local t = sqrt(r(F))
+di "`t'"
+
+***************
+* 4.5小节的例子
+***************
+use MLB1, clear
+
+global control bavg hrunsyr rbisyr 
+
+* (4.31) 不受约束模型
+reg lsalary years gamesyr bavg hrunsyr rbisyr 
+reg lsalary years gamesyr $control
+
+
+ereturn list 
+local SSR_ur = e(rss)
+* (4.33) 受约束模型
+reg lsalary years gamesyr 
+local SSR_r = e(rss)
+* F的计算
+local F = ( (`SSR_r'-`SSR_ur')/3 ) / (`SSR_ur'/347 )
+di "`F'"
+
+global test = 3
+di "$test"
+
+* 使用test直接检验系数的线性组合
+reg lsalary years gamesyr bavg hrunsyr rbisyr 
+test bavg hrunsyr rbisyr
 
 
 *————————————————————————————————————————————————————————————————————————————————————
