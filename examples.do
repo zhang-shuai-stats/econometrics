@@ -124,13 +124,8 @@ di "`t'"
 ***************
 use MLB1, clear
 
-global control bavg hrunsyr rbisyr 
-
 * (4.31) 不受约束模型
 reg lsalary years gamesyr bavg hrunsyr rbisyr 
-reg lsalary years gamesyr $control
-
-
 ereturn list 
 local SSR_ur = e(rss)
 * (4.33) 受约束模型
@@ -151,7 +146,10 @@ test bavg hrunsyr rbisyr
 *————————————————————————————————————————————————————————————————————————————————————
 * chapter 6
 *————————————————————————————————————————————————————————————————————————————————————
+*********
 * 表 6-1
+*********
+
 use BWGHT, clear 
 
 * 使用collect命令收集回归结果，并输出最终表格
@@ -180,7 +178,18 @@ collect style cell result[_r_se], warn sformat("(%s)")
 
 collect layout (colname[cigs packs faminc _cons]#result[_r_b _r_se] result[N r2 rss rmse]) (cmdset)
 
+*********
+* 例 6.3
+*********
+use ATTEND, clear 
+qui: sum priGPA
+local avg = r(mean)
+reg stndfnl atndrte priGPA ACT c.priGPA#c.priGPA c.ACT#c.ACT c.priGPA#c.atndrte
+margins, dydx(atndrte) at(priGPA=`avg')
+
+*********
 * 例 6.5
+*********
 use GPA2, clear 
 reg colgpa sat hsperc hsize hsizesq
 
@@ -190,7 +199,9 @@ gen hsize0 = hsize - 5
 gen hsizesq0 = hsizesq - 25
 reg colgpa sat0 hsperc0 hsize0 hsizesq0
 
+*********
 * 例 6.7
+*********
 use CEOSAL2, clear 
 reg lsalary lsales lmktval ceoten
 predict uhat, residual  // 残差
@@ -206,7 +217,9 @@ di "`salary_hat'"
 *————————————————————————————————————————————————————————————————————————————————————
 * chapter 7
 *————————————————————————————————————————————————————————————————————————————————————
+*********
 * 例 7.1
+*********
 use WAGE1, clear 
 reg wage female educ exper tenure
 reg wage female
@@ -214,7 +227,9 @@ reg educ female // 验证协变量之间的关系
 reg exper female 
 reg tenure female
 
+*********
 * 例 7.6
+*********
 use WAGE1, clear 
 gen marrmale = married * (1 - female)
 gen marrfem = married * female
