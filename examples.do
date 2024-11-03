@@ -228,6 +228,30 @@ reg exper female
 reg tenure female
 
 *********
+* 例 7.2
+*********
+use GPA1, clear
+reg colGPA PC hsGPA ACT
+
+*********
+* 例 7.3
+*********
+use JTRAIN, clear
+reg hrsemp grant lsales lemploy if year == 1988
+
+*********
+* 例 7.4
+*********
+use HPRICE1, clear
+reg lprice llotsize lsqrft bdrms colonial 
+
+*********
+* 例 7.5
+*********
+use WAGE1, clear 
+reg lwage female educ exper c.exper#c.exper tenure c.tenure#c.tenure
+
+*********
 * 例 7.6
 *********
 use WAGE1, clear 
@@ -237,6 +261,7 @@ gen singfem = (1 - married)* female
 reg lwage marrmale marrfem singfem educ exper expersq tenure tenursq
 * 一种更快捷的方式
 reg lwage i.female#i.married educ exper expersq tenure tenursq
+
 
 * p200 （7.33）
 use JTRAIN, clear 
