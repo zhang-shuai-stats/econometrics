@@ -162,7 +162,6 @@ collect dims
 collect levelsof colname
 collect levelsof result
 collect layout (colname[cigs packs faminc _cons]#result[_r_b _r_se] result[N rss rmse]) (cmdset)
-
 * 行名称
 collect style header colname, level(value)
 collect style header colname[_cons], level(label)
@@ -260,8 +259,7 @@ gen marrfem = married * female
 gen singfem = (1 - married)* female
 reg lwage marrmale marrfem singfem educ exper expersq tenure tenursq
 * 一种更快捷的方式
-reg lwage i.female#i.married educ exper expersq tenure tenursq
-
+reg lwage  i.female#i.married educ exper expersq tenure tenursq
 
 * p200 （7.33）
 use JTRAIN, clear 
@@ -291,7 +289,7 @@ gen marrfem = married * female
 gen singfem = (1 - married)* female
 * 普通回归
 reg lwage marrmale marrfem singfem educ exper expersq tenure tenursq
-* 异方差-文件标准误
+* 异方差-稳健标准误
 reg lwage marrmale marrfem singfem educ exper expersq tenure tenursq, robust 
 
 ********
@@ -304,6 +302,17 @@ gen age25 = (age - 25)^2
 collect clear 
 collect: reg nettfa inc  // ols
 collect: reg nettfa inc [aweight=1/inc]
+
+gen inc_sq = inc^0.5
+gen y_star = nettfa / inc_sq
+gen x_star = inc/ inc_sq
+gen cons = 1
+gen cons_star = 1 / inc_sq
+reg y_star x_star cons_star, noconstant
+
+reg nettfa inc
+reg nettfa inc cons, noconstant
+
 collect: reg nettfa inc age25 male e401k
 collect: reg nettfa inc age25 male e401k [aweight=1/inc]
 
