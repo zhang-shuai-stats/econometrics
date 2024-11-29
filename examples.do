@@ -433,7 +433,7 @@ gen hi = yhat*(1-yhat)
 reg PC hsGPA ACT parcoll [aweight=1/hi]
 estimates store WLS
 
-etable, estimates(OLS OLS_Robust WLS) mstat(N) mstat(r2) column(estimates) novarlabel
+etable, estimates(OLS OLS_Robust WLS) mstat(N) mstat(r2) column(estimates) novarlabel showstars
 
 *————————————————————————————————————————————————————————————————————————————————————
 * chapter 9
@@ -448,7 +448,7 @@ reg narr86 pcnv pcnvsq avgsen tottime ptime86 pt86sq qemp86 inc86 inc86sq black 
 estimates store squared 
 test pcnvsq pt86sq inc86sq  // f检验
 
-etable, estimates(no_squared squared) mstat(N) mstat(r2,nformat(%9.4f))  novarlabel
+etable, estimates(no_squared squared) mstat(N) mstat(r2,nformat(%9.4f))  novarlabel showstars
 
 *********
 * 例 9.2
