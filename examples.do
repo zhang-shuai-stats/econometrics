@@ -501,7 +501,8 @@ reg lwage educ exper tenure married south urban black IQ c.edu#c.IQ
 estimates store c3 
 
 etable, estimates(c1 c2 c3) mstat(N) mstat(r2,nformat(%9.3f)) novarlabel ///
-stars(0.10 "*" .05 "**" .01 "***", attach(_r_b))  showstars showstarsnote column(index)
+stars(0.10 "*" .05 "**" .01 "***", attach(_r_b))  showstars showstarsnote column(index) ///
+export("test", as(xlsx) replace)
 
 *********
 * 例 9.4
