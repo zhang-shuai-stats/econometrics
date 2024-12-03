@@ -552,5 +552,49 @@ estimates store c2
 etable, estimates(c1 c2 )  mstat(N) mstat(r2,nformat(%9.3f)) novarlabel ///
 stars(0.10 "*" .05 "**" .01 "***", attach(_r_b))  showstars showstarsnote column(index)
 
+*————————————————————————————————————————————————————————————————————————————————————
+* chapter 13
+*————————————————————————————————————————————————————————————————————————————————————
+*********
+* 例 13.1
+*********
+use FERTIL1, clear
+reg kids educ age agesq black east northcen west farm othrural town smcity ///
+y74 y76 y78 y80 y82 y84
+test y74 y76 y78 y80 y82 y84 // F检验
+
+*********
+* 例 13.2
+*********
+use CPS78_85, clear 
+reg lwage y85 educ y85educ exper expersq union female y85fem
+
+*********
+* 例 13.3
+*********
+use KIELMC, clear 
+reg rprice nearinc if year==1981  // 1981年回归结果
+reg rprice nearinc if year==1978  // 1978年回归结果
+
+* 表13-2
+reg rprice y81 nearinc y81nrinc 
+estimates store c1 
+reg rprice y81 nearinc y81nrinc age agesq
+estimates store c2
+reg rprice y81 nearinc y81nrinc age agesq intst land area rooms baths
+estimates store c3
+etable, estimates(c1 c2 c3 ) keep(y81 nearinc y81nrinc _cons) cstat(_r_b, nformat(%9.2f)) mstat(N) mstat(r2,nformat(%9.3f)) novarlabel ///
+stars(0.10 "*" .05 "**" .01 "***", attach(_r_b))  showstars showstarsnote column(index)
+
+*************
+* 13.3节的例子
+*************
+use CRIME2, clear 
+egen id = fill(1 1 2 2)
+order id year
+reg crmrte unem if year == 87
+
+
+
 
 
