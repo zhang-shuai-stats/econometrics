@@ -590,11 +590,64 @@ stars(0.10 "*" .05 "**" .01 "***", attach(_r_b))  showstars showstarsnote column
 * 13.3节的例子
 *************
 use CRIME2, clear 
-egen id = fill(1 1 2 2)
-order id year
-reg crmrte unem if year == 87
+egen id = fill(1 1 2 2)  // 生成个人编码
+order id year  // 放在数据最前面
+xtset id year, delta(5)  // 声明面板数据
+reg crmrte unem if year == 87  // 简单回归
 
+* 简单一阶差分回归
+gen d_crmte = crmrte - l.crmrte
+gen d_unem = unem - l.unem 
+reg d_crmte d_unem
+reg d.crmrte d.unem  
 
+*********
+* 例 13.5
+*********
+use SLP75_81, clear 
+reg cslpnap ctotwrk ceduc cmarr cyngkid cgdhlth 
+test ceduc cmarr cyngkid cgdhlth  // 除ctotwrk外的f检验
 
+*********
+* 例 13.6
+*********
+use CRIME3, clear 
+reg clcrime cclrprc1 cclrprc2
 
+*************
+* 13.4节的例子
+*************
+use JTRAIN , clear 
+egen id = fill(1 1 1 2 2 2)  // 生成企业编码
+order id year  // 放在数据最前面
+xtset id year // 声明面板数据
+* 简单一阶差分
+reg d.scrap d.grant if inlist(year,1987,1988)
+reg d.lscrap d.grant if inlist(year,1987,1988)  // 对数
 
+*********
+* 例 13.7
+*********
+use TRAFFIC1, clear 
+reg cdthrte copen cadmn
+
+*********
+* 例 13.8
+*********
+use EZUNEM, clear 
+egen id = fill(1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 )  // 生成城市编码
+gen index = _n  // 生成城市编码的另一种方式
+bys year (index): gen id1 = _n
+order id id1 year  // 放在数据最前面
+xtset id year // 声明面板数据
+
+* 简单一阶差分
+reg guclms cez d82 d83 d84 d85 d86 d87 d88
+reg d.luclms d.ez i.year
+
+*********
+* 例 13.9
+*********
+use CRIME4, clear 
+xtset county year 
+reg d.lcrmrte d.lprbarr d.lprbconv d.lprbpris d.lavgsen d.lpolpc i.year
