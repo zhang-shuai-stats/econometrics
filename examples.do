@@ -532,7 +532,7 @@ scatter rdintens sales
 
 * 学生化残差：销售额最大的观测值
 egen sales_max = max(sales)
-gen id = sales == sales_max
+gen id = (sales == sales_max)
 reg rdintens sales profmarg id
 gen st_sales = _b[id]/_se[id]
 
@@ -650,5 +650,13 @@ reg d.luclms d.ez i.year
 *********
 use CRIME4, clear 
 xtset county year 
+
+areg lcrmrte lprbarr, absorb(county)
+
+reghdfe lcrmrte lprbarr, absorb(c.county#i.year)
+reghdfe lcrmrte lprbarr, absorb(i.year)
+
+
+
 reg d.lcrmrte d.lprbarr d.lprbconv d.lprbpris d.lavgsen d.lpolpc i.year
 reg d.lcrmrte d.lprbarr d.lprbconv d.lprbpris d.lavgsen d.lpolpc i.year, cluster(county)  // 聚类稳健标准误
