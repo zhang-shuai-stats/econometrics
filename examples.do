@@ -651,3 +651,4 @@ reg d.luclms d.ez i.year
 use CRIME4, clear 
 xtset county year 
 reg d.lcrmrte d.lprbarr d.lprbconv d.lprbpris d.lavgsen d.lpolpc i.year
+reg d.lcrmrte d.lprbarr d.lprbconv d.lprbpris d.lavgsen d.lpolpc i.year, cluster(county)  // 聚类稳健标准误
