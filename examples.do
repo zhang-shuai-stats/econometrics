@@ -650,13 +650,22 @@ reg d.luclms d.ez i.year
 *********
 use CRIME4, clear 
 xtset county year 
-
-areg lcrmrte lprbarr, absorb(county)
-
-reghdfe lcrmrte lprbarr, absorb(c.county#i.year)
-reghdfe lcrmrte lprbarr, absorb(i.year)
-
-
-
 reg d.lcrmrte d.lprbarr d.lprbconv d.lprbpris d.lavgsen d.lpolpc i.year
 reg d.lcrmrte d.lprbarr d.lprbconv d.lprbpris d.lavgsen d.lpolpc i.year, cluster(county)  // 聚类稳健标准误
+
+*————————————————————————————————————————————————————————————————————————————————————
+* chapter 13
+*————————————————————————————————————————————————————————————————————————————————————
+*********
+* 例 14.2
+*********
+use wagepan, clear
+xtset nr year
+xtdescribe
+xtreg lwage expersq married union ib1980.year c.edu#c.d81 c.edu#c.d82 c.edu#c.d83 ///
+      c.edu#c.d84 c.edu#c.d85 c.edu#c.d86 c.edu#c.d87, fe
+xtreg lwage expersq married union ib1980.year c.edu#ib1980.year, fe
+* 注意：结果与书不同
+
+
+
