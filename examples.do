@@ -654,7 +654,7 @@ reg d.lcrmrte d.lprbarr d.lprbconv d.lprbpris d.lavgsen d.lpolpc i.year
 reg d.lcrmrte d.lprbarr d.lprbconv d.lprbpris d.lavgsen d.lpolpc i.year, cluster(county)  // 聚类稳健标准误
 
 *————————————————————————————————————————————————————————————————————————————————————
-* chapter 13
+* chapter 14
 *————————————————————————————————————————————————————————————————————————————————————
 *********
 * 例 14.2
@@ -667,5 +667,92 @@ xtreg lwage expersq married union ib1980.year c.edu#c.d81 c.edu#c.d82 c.edu#c.d8
 xtreg lwage expersq married union ib1980.year c.edu#ib1980.year, fe
 * 注意：结果与书不同
 
+*********
+* 例 14.4
+*********
+use wagepan, clear
+xtset nr year
 
+reg lwage educ black hisp exper expersq married union i.year
+estimates store c1 
+xtreg lwage educ black hisp exper expersq married union i.year, re
+estimates store c2 
+xtreg lwage educ black hisp exper expersq married union i.year, fe
+estimates store c3 
+etable, estimates(c1 c2 c3 ) keep(educ black hisp exper expersq married union) ///
+novarlabel stars(0.10 "*" .05 "**" .01 "***", attach(_r_b))  ///
+showstars showstarsnote column(index)
 
+*********************
+* 相关随机效应的一个例子
+*********************
+* webuse nlswork, clear 
+use nlswork, clear 
+xtset idcode year 
+
+xtreg ln_wage tenure age i.race, fe   // 固定效应模型
+estimates store fe
+xtreg ln_wage tenure age i.race, re   // 随机效应模型
+estimates store re
+
+* 相关随机效应
+egen tenure_m = mean(tenure), by(idcode)
+egen age_m = mean(age), by(idcode)
+xtreg ln_wage tenure age i.race tenure_m age_m, re
+estimates store cre 
+
+etable, estimates(fe re cre ) novarlabel stars(0.10 "*" .05 "**" .01 "***", attach(_r_b))  ///
+showstars showstarsnote column(estimates)
+
+* 豪斯曼检验
+hausman fe re  // 拒绝随机效应
+
+* cre的检验
+xtreg ln_wage tenure age i.race tenure_m age_m, re
+test tenure_m age_m  // 拒绝随机效应
+
+**********************************
+* 固定效应向量分解方法（FEDV）的一个例子
+**********************************
+* webuse nlswork, clear 
+use nlswork, clear 
+xtset idcode year 
+xtdescribe
+
+* 第一步估算固定效应模型，并计算每一个截矩项
+xtreg ln_wage tenure age i.race, fe   // 固定效应模型
+estimates store step1
+* 求每个截矩项
+local beta1 = _b[tenure] 
+local beta2 = _b[age]
+egen y_mean = mean(ln_wage) if e(sample), by(idcode)
+egen x1_mean = mean(tenure) if e(sample), by(idcode)
+egen x2_mean = mean(age) if e(sample), by(idcode)
+gen a = y_mean - `beta1'*x1_mean - `beta2'*x2_mean
+
+* 第二步截矩项对时间不变向量回归
+collapse (mean) a race, by(idcode)
+reg a i.race
+estimates store step2
+predict h, residual
+keep idcode h
+save temp, replace
+
+* 第三步将h放回原方程
+use nlswork, clear 
+merge n:1 idcode using temp
+reg ln_wage tenure age i.race h 
+estimates store step3
+
+etable, estimates(step1 step2 step3 ) cstat(_r_b, nformat(%9.5f)) cstat(_r_se, nformat(%9.5f)) ///
+novarlabel stars(0.10 "*" .05 "**" .01 "***", attach(_r_b))  ///
+showstars showstarsnote column(estimates)
+
+*********************
+* 聚类标准误的一个例子
+*********************
+use nlswork, clear 
+xtset idcode year 
+
+xtreg ln_wage tenure age i.race, fe  vce(cluster idcode) // 固定效应模型
+xtreg ln_wage tenure age i.race, re  vce(cluster idcode) // 随机效应模型
