@@ -756,3 +756,171 @@ xtset idcode year
 
 xtreg ln_wage tenure age i.race, fe  vce(cluster idcode) // 固定效应模型
 xtreg ln_wage tenure age i.race, re  vce(cluster idcode) // 随机效应模型
+
+
+*————————————————————————————————————————————————————————————————————————————————————
+* chapter 15
+*————————————————————————————————————————————————————————————————————————————————————
+*********
+* 例 15.1
+*********
+use MROZ, clear
+reg lwage educ  // OLS
+reg educ fatheduc if e(sample)  // 内生变量与工具变量回归
+predict educ_hat if e(sample), xb
+reg lwage educ_hat  // 注意：标准差存在错误
+
+ivregress 2sls lwage (educ = fatheduc), first  // 正确的iv回归命令
+
+*********
+* 例 15.2
+*********
+use WAGE2, clear
+ivregress 2sls lwage (educ = sibs), first  
+
+*********
+* 例 15.3
+*********
+use BWGHT, clear
+ivregress 2sls lbwght (packs = cigprice), first  
+
+*********
+* 例 15.4
+*********
+use CARD, clear
+* 第一阶段（reduced form）
+reg educ nearc4 exper expersq black smsa south smsa66 reg662-reg669
+* ols
+reg lwage educ exper expersq black smsa south smsa66 reg662-reg669 
+estimates store ols
+* iv
+ivregress 2sls lwage exper expersq black smsa south smsa66 reg662-reg669 (educ = nearc4)
+estimates store iv 
+
+etable, keep(educ exper expersq black smsa south)  estimates(ols iv )  ///
+novarlabel stars(0.10 "*" .05 "**" .01 "***", attach(_r_b))  ///
+showstars showstarsnote column(estimates)
+
+*********
+* 例 15.5
+*********
+use MROZ, clear
+ivregress 2sls lwage exper expersq (educ = fatheduc motheduc), first  // 正确的iv回归命令
+estimates store tsls
+
+* 如果自己估算
+reg educ fatheduc motheduc exper expersq  if e(sample)  // 第一阶段
+test fatheduc motheduc  // f检验排除性约束
+predict educ_hat if e(sample), xb
+reg lwage educ_hat exper expersq // 注意：标准差存在错误
+estimates store my2sls
+
+etable, estimates(tsls my2sls ) cstat(_r_b, nformat(%9.5f)) cstat(_r_se, nformat(%9.5f)) ///
+novarlabel stars(0.10 "*" .05 "**" .01 "***", attach(_r_b))  ///
+showstars showstarsnote column(estimates)
+
+collect dims
+collect levelsof colname
+collect levelsof etable_estimates
+collect recode colname `"educ_hat"' = `"educ"'
+collect layout (colname#result[_r_b _r_se] result[r2 N]) (etable_estimates#stars)
+
+*******************
+* 例 15.4的共线性问题
+*******************
+use CARD, clear
+
+* 内生变量与其他外生变量的相关
+reg educ exper expersq black smsa south smsa66 reg662-reg669 
+di "`e(r2)'"
+
+* 第一阶段拟合值与其他外生变量的相关
+reg educ nearc4 exper expersq black smsa south smsa66 reg662-reg669  // 第一阶段回归
+predict educ_hat, xb
+reg educ_hat exper expersq black smsa south smsa66 reg662-reg669 
+di "`e(r2)'"
+
+********************************
+* 用例 15.2的数据来说明弱工具变量检验
+********************************
+use WAGE2, clear
+ivregress 2sls lwage tenure age (educ = sibs feduc meduc), first
+estat firststage
+
+* f检验
+reg educ sibs feduc meduc tenure age 
+test sibs feduc meduc
+
+*********
+* 例 15.6
+*********
+use WAGE2, clear
+ivregress 2sls lwage educ exper tenure married south urban black  (IQ = KWW), first  
+estat firststage
+
+*********
+* 例 15.7
+*********
+use MROZ, clear
+egen samp = rowmiss(lwage exper expersq educ fatheduc motheduc)
+drop if samp
+
+* 第一步回归
+reg educ exper expersq motheduc fatheduc
+predict educ_hat, xb
+predict res, residual
+* 检验残差
+reg lwage educ exper expersq res
+test res 
+* 检验拟合值
+reg lwage educ exper expersq educ_hat
+test educ_hat 
+
+ivregress 2sls lwage exper expersq (educ = fatheduc motheduc)
+estat endogenous
+
+*********
+* 例 15.8
+*********
+use MROZ, clear
+egen samp = rowmiss(lwage exper expersq educ fatheduc motheduc)
+drop if samp
+
+ivregress 2sls lwage exper expersq (educ = fatheduc motheduc)
+predict res, residual
+reg res exper expersq motheduc fatheduc
+local chi2 = `e(N)' * `e(r2)'
+di "`chi2'"
+
+ivregress 2sls lwage exper expersq (educ = fatheduc motheduc)
+estat overid
+
+* 如果添加丈夫的教育水平
+ivregress 2sls lwage exper expersq (educ = fatheduc motheduc huseduc)
+predict res1, residual
+reg res1 exper expersq motheduc fatheduc huseduc
+local chi2 = `e(N)' * `e(r2)'
+di "`chi2'"
+
+ivregress 2sls lwage exper expersq (educ = fatheduc motheduc huseduc)
+estat overid
+
+*********
+* 例 15.9
+*********
+use FERTIL1, clear
+gen index = _n  // 生成城市编码的另一种方式
+bys year (index): gen id = _n
+order id year
+
+ivregress 2sls kids  age agesq black east northcen west farm othrural town smcity ///
+y74 y76 y78 y80 y82 y84 (educ = meduc feduc)
+
+xtset year id 
+xtivreg kids age agesq black east northcen west farm othrural town smcity (educ = meduc feduc), fe
+
+**********
+* 例 15.10
+**********
+use JTRAIN, clear
+ivregress 2sls clscrap  (chrsemp = cgrant), first
