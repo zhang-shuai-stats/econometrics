@@ -1034,3 +1034,19 @@ use RECID, clear
 sum durat if cens == 1
 local ul = log(`r(min)')
 truncreg ldurat workprg priors tserved felon alcohol drugs black married educ age, ul(`ul')
+
+*******************
+* 例 17.5
+*******************
+use MROZ, clear 
+
+reg lwage educ exper expersq 
+estimates store ols
+heckman lwage educ exper expersq, select(nwifeinc educ exper expersq age kidslt6 kidsge6) twostep
+estimates store heckman
+heckman lwage educ exper expersq, select(nwifeinc educ exper expersq age kidslt6 kidsge6) 
+estimates store heckman_mle
+
+etable,  estimates(ols heckman heckman_mle)  keep(educ exper expersq _cons lambda) ///
+novarlabel stars(0.10 "*" .05 "**" .01 "***", attach(_r_b))  ///
+showstars showstarsnote column(estimates)
