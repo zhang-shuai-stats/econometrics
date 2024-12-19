@@ -902,7 +902,7 @@ reg res1 exper expersq motheduc fatheduc huseduc
 local chi2 = `e(N)' * `e(r2)'
 di "`chi2'"
 
-ivregress 2sls lwage exper expersq (educ = fatheduc motheduc huseduc)
+ivregress 2sls lwage exper expersq (educ = fatheduc motheduc huseduc), robust
 estat overid
 
 *********
@@ -912,6 +912,7 @@ use FERTIL1, clear
 gen index = _n  // 生成城市编码的另一种方式
 bys year (index): gen id = _n
 order id year
+xtset id year
 
 ivregress 2sls kids  age agesq black east northcen west farm othrural town smcity ///
 y74 y76 y78 y80 y82 y84 (educ = meduc feduc)
@@ -924,3 +925,112 @@ xtivreg kids age agesq black east northcen west farm othrural town smcity (educ 
 **********
 use JTRAIN, clear
 ivregress 2sls clscrap  (chrsemp = cgrant), first
+
+
+*————————————————————————————————————————————————————————————————————————————————————
+* chapter 17
+*————————————————————————————————————————————————————————————————————————————————————
+*******************
+* logit模型的一个例子
+*******************
+sysuse auto, clear
+keep  mpg weight foreign
+logit foreign weight mpg
+margins, dydx(weight mpg)
+margins, dydx(weight mpg) atmeans
+estat class
+
+*******************
+* 例 17.1
+*******************
+use MROZ, clear 
+
+collect clear 
+collect, tags(model[ols]): reg inlf nwifeinc educ exper expersq age kidslt6 kidsge6
+collect, tags(margin[ols]): margins, dydx(*)
+collect, tags(model[logit]): logit inlf nwifeinc educ exper expersq age kidslt6 kidsge6
+collect, tags(margin[logit]): margins, dydx(*)
+collect, tags(model[logit]): estat class 
+collect, tags(model[probit]): probit inlf nwifeinc educ exper expersq age kidslt6 kidsge6
+collect, tags(margin[probit]): margins, dydx(*)
+collect, tags(model[probit]): estat class 
+
+collect dims
+collect levelsof result
+
+* 表17.1
+collect style autolevels result _r_b _r_se
+collect style autolevels colname nwifeinc educ exper expersq age kidslt6 kidsge6 _cons
+
+collect recode result `"r2_p"' = `"r2"'
+collect style header colname, level(value)
+collect style header result[_r_b _r_se], level(hide)
+collect style cell model, warn nformat(%9.4f)
+collect style cell result[_r_se], warn nformat(%9.4f) sformat((%s))
+
+collect layout (colname#result result[P_corr ll r2 r2_p]) (model)
+
+* 表17.2
+collect layout (colname#result) (margin)
+
+*******************
+* 例 17.2
+*******************
+use MROZ, clear 
+
+collect clear 
+collect, tags(model[ols]): reg hours nwifeinc educ exper expersq age kidslt6 kidsge6
+collect, tags(margin[ols]): margins, dydx(*)
+collect, tags(model[tobit]): tobit hours nwifeinc educ exper expersq age kidslt6 kidsge6, ll(0)
+collect, tags(margin[tobit]): margins, dydx(*) predict(ystar(0,.))
+
+
+collect dims
+collect levelsof result
+
+* 表17.3
+collect style autolevels result _r_b _r_se
+collect style autolevels colname nwifeinc educ exper expersq age kidslt6 kidsge6 _cons
+
+collect recode result `"r2_p"' = `"r2"'
+collect style header colname, level(value)
+collect style header result[_r_b _r_se], level(hide)
+collect style cell model margin, warn nformat(%9.2f)
+collect style cell result[_r_se], warn nformat(%9.2f) sformat((%s))
+
+collect layout (colname#result result[ ll r2 r2_p]) (model)
+
+* 表17.4
+collect layout (colname#result) (margin)
+
+*******************
+* 例 17.3
+*******************
+use CRIME1, clear 
+
+reg narr86 pcnv avgsen tottime ptime86 qemp86 inc86 black hispan born60
+estimates store ols
+poisson narr86 pcnv avgsen tottime ptime86 qemp86 inc86 black hispan born60
+estimates store poisson
+
+etable,  estimates(ols poisson )  mstat(ll) mstat(r2) mstat(r2_p) ///
+novarlabel stars(0.10 "*" .05 "**" .01 "***", attach(_r_b))  ///
+showstars showstarsnote column(estimates)
+
+*******************
+* 例 17.4
+*******************
+use RECID, clear
+
+gen ldurat_upper = .
+replace ldurat_upper = ldurat if cens == 0
+intreg ldurat ldurat_upper workprg priors tserved felon alcohol drugs black married educ age
+
+**********************
+* truncated regression
+***********************
+use RECID, clear
+
+sum durat if cens == 1
+local ul = log(`r(min)')
+truncreg ldurat workprg priors tserved felon alcohol drugs black married educ age, ul(`ul')
