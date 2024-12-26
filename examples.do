@@ -1043,10 +1043,20 @@ use MROZ, clear
 reg lwage educ exper expersq 
 estimates store ols
 heckman lwage educ exper expersq, select(nwifeinc educ exper expersq age kidslt6 kidsge6) twostep
-estimates store heckman
+estimates store heckman_twostep
 heckman lwage educ exper expersq, select(nwifeinc educ exper expersq age kidslt6 kidsge6) 
 estimates store heckman_mle
 
-etable,  estimates(ols heckman heckman_mle)  keep(educ exper expersq _cons lambda) ///
+* 自己计算
+gen z = !mi(lwage)
+probit z nwifeinc educ exper expersq age kidslt6 kidsge6
+predict zhat, xb
+gen phi = normalden(zhat)
+gen Phi = normal(zhat)
+gen lambda = phi / Phi 
+reg lwage educ exper expersq lambda  // 注意方差需要调整
+estimates store reg_myself
+
+etable,  estimates(ols heckman heckman_mle reg_myself)  keep(educ exper expersq _cons lambda) ///
 novarlabel stars(0.10 "*" .05 "**" .01 "***", attach(_r_b))  ///
 showstars showstarsnote column(estimates)
